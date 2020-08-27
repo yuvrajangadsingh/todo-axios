@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To- Do</title>
+  <style>
+    #itemsleft {
+      padding-right: 80px;
+    }
+
+    #list {
+      list-style: none;
+      align-items: left;
+    }
+
+    body {
+      background-color: rgb(238, 184, 209);
+    }
+
+    /* #listdiv {
+            /* justify-content: space-between; */
+    /* padding-left: 10px; */
+    /* background-color: aqua;
+        } */
+    h1 {
+      font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
+        sans-serif;
+      font-weight: lighter;
+      font-style: italic;
+      color: rgb(98, 92, 185);
+      font-size: 40px;
+      text-shadow: 2px 2px black;
+    }
+
+    #items,
+    .filters {
+      font-weight: lighter;
+      font-style: italic;
+      color: rgb(98, 92, 185);
+      font-size: 22px;
+    }
+
+    #input {
+      width: 25vw;
+      height: 30px;
+      border-radius: 15px;
+      border: 1px solid darkgray;
+      background-color: aliceblue;
+      /* width: 300px; */
+      /* height: auto; */
+      -webkit-transition: .3s ease-in-out;
+      transition: .3s ease-in-out;
+      box-shadow: 2px 2px gray;
+      border-style: inset;
+    }
+
+    #input:hover {
+      width: 30vw;
+      height: 40px;
+    }
+
+
+    #outer {
+      margin-top: 15%;
+    }
+
+    #list {
+      text-align: justify;
+      padding: 20px;
+      /* margin-left: 39%; */
+      width: 15vw;
+    }
+
+    /* #list:hover {
+      /* background-color: darkblue; */
+    /* height: 25v;
+    width: 25vw;
+    } */
+
+    li:hover {
+      background-color: royalblue;
+      width: 105%;
+      height: 25px;
+      color: white;
+    }
+
+
+    li {
+      background-color: lavender;
+      width: 100%;
+      border: none;
+      border-radius: 25px;
+      /* width: 300px; */
+      height: 20px;
+      -webkit-transition: .3s ease-in-out;
+      transition: .3s ease-in-out;
+      padding-bottom: 8px;
+      padding-top: 8px;
+      box-shadow: 2px 2px gray;
+      /* margin-top: 5px; */
+      margin-bottom: 5px;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 20px;
+    }
+
+    #itemsleft {
+      font-size: 20px;
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    #delete {
+      float: right;
+      margin-right: 10px;
+      margin-top: 2px;
+      border: none;
+      background: transparent;
+      color: transparent;
+    }
+
+    #delete:hover {
+      color: white;
+    }
+
+    #all,
+    #active,
+    #completed {
+      -webkit-filter: blur(3px);
+      filter: blur(3px);
+      -webkit-transition: .3s ease-in-out;
+      transition: .3s ease-in-out;
+      border-radius: 10px;
+      border: 1px;
+      padding: 10px;
+      margin: 10px;
+      width: fit-content;
+      box-shadow: 2px 2px gray;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 16px;
+    }
+
+    #all:hover,
+    #active:hover,
+    #completed:hover {
+      -webkit-filter: blur(0);
+      filter: blur(0);
+    }
+
+    /* itemCheckbox {
+            box-shadow: black;
+        } */
+  </style>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    window.onload = () => {
+      const getData = () => {
+        console.log("getdata");
+        axios.get("/root").then((response) => {
+          document.getElementById("input").value = "";
+          document.getElementById("list").innerHTML = "";
+          document.getElementById("list").innerHTML = "";
+          document.getElementById("itemsleft").innerHTML = "";
+          var itemsleft = response.data.itemsleft;
+          document.getElementById("itemsleft").append(itemsleft);
+          console.log(response.data);
+          var tasks = response.data.data;
+          for (let i in response.data.data) {
+            var caption = document.createElement("span");
+            caption.innerHTML = tasks[i].caption;
+            var checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = "checkbox";
+            if (tasks[i].isCompleted == 1) {
+              checkbox.checked = true;
+            } else {
+              checkbox.checked = false;
+            }
+            if (checkbox.checked) {
+              caption.style.textDecoration = "line-through";
+            } else {
+              caption.style.textDecoration = "";
+            }
+            checkbox.addEventListener("change", (e) => {
+              var url = "/checkbox/?" + tasks[i]._id;
+              console.log(url);
+              axios
+                .get(url)
+                .then((response) => {
+                  console.log(response);
+                })
+                .then(() => {
+                  getData();
+                });
+            });
+            var delBtn = document.createElement("button");
+            delBtn.innerHTML = "X";
+            delBtn.id = "delete";
+            delBtn.addEventListener("click", () => {
+              var url = "/removeTask/?" + tasks[i]._id;
+              axios
+                .get(url)
+                .then((response) => {
+                  console.log(response);
+
+                })
+                .then(() => {
+                  getData();
+                });
+            });
+            var li = document.createElement("li");
+            li.appendChild(checkbox);
+            li.appendChild(caption);
+            li.appendChild(delBtn);
+            document.getElementById("list").appendChild(li);
+          }
+        });
+      };
+      const activeData = () => {
+        axios.get("/active").then((response) => {
+          document.getElementById("input").value = "";
+          document.getElementById("list").innerHTML = "";
+          document.getElementById("itemsleft").innerHTML = "";
+          var itemsleft = response.data.itemsleft;
+          document.getElementById("itemsleft").append(itemsleft);
+          var tasks = response.data.data;
+          for (let i in response.data.data) {
+            var caption = document.createElement("span");
+            caption.innerHTML = tasks[i].caption;
+            var checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = "checkbox";
+            if (tasks[i].isCompleted == 1) {
+              checkbox.checked = true;
+            } else {
+              checkbox.checked = false;
+            }
+            if (checkbox.checked) {
+              caption.style.textDecoration = "line-through";
+            } else {
+              caption.style.textDecoration = "";
+            }
+            checkbox.addEventListener("change", (e) => {
+              var url = "/checkbox/?" + tasks[i]._id;
+              console.log(url);
+              axios
+                .get(url)
+                .then((response) => {
+                  console.log(response);
+                })
+                .then(() => {
+                  getData();
+                });
+            });
+            var delBtn = document.createElement("button");
+            delBtn.innerHTML = "X";
+            delBtn.id = "delete";
+            delBtn.addEventListener("click", () => {
+              var url = "/removeTask/?" + tasks[i]._id;
+              console.log(url);
+              axios
+                .get(url)
+                .then((response) => {
+                  console.log(response);
+
+                })
+                .then(() => {
+                  getData();
+                });
+            });
+            var li = document.createElement("li");
+            li.appendChild(checkbox);
+            li.appendChild(caption);
+            li.appendChild(delBtn);
+            document.getElementById("list").appendChild(li);
+          }
+        });
+      };
+      const completedData = () => {
+        axios.get("/completed").then((response) => {
+          document.getElementById("input").value = "";
+          document.getElementById("list").innerHTML = "";
+          document.getElementById("itemsleft").innerHTML = "";
+          var itemsleft = response.data.itemsleft;
+          document.getElementById("itemsleft").append(itemsleft);
+          var tasks = response.data.data;
+          for (let i in response.data.data) {
+            var caption = document.createElement("span");
+            caption.innerHTML = tasks[i].caption;
+            var checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = "checkbox";
+            if (tasks[i].isCompleted == 1) {
+              checkbox.checked = true;
+            } else {
+              checkbox.checked = false;
+            }
+            if (checkbox.checked) {
+              caption.style.textDecoration = "line-through";
+            } else {
+              caption.style.textDecoration = "";
+            }
+            checkbox.addEventListener("change", (e) => {
+              var url = "/checkbox/?" + tasks[i]._id;
+              console.log(url);
+              axios
+                .get(url)
+                .then((response) => {
+                  console.log(response);
+                })
+                .then(() => {
+                  getData();
+                });
+            });
+            var delBtn = document.createElement("button");
+            delBtn.innerHTML = "X";
+            delBtn.id = "delete";
+            delBtn.addEventListener("click", () => {
+              var url = "/removeTask/?" + tasks[i].id;
+              console.log(url);
+              axios
+                .get(url)
+                .then((response) => {
+                  console.log(response);
+                })
+                .then(() => {
+                  getData();
+                });
+            });
+            var li = document.createElement("li");
+            li.appendChild(checkbox);
+            li.appendChild(caption);
+            li.appendChild(delBtn);
+            document.getElementById("list").appendChild(li);
+          }
+        });
+      };
+      document.getElementById("input").addEventListener("keypress", (e) => {
+        if (e.keyCode == 13) {
+          console.log(e.target.value);
+          var url = "/addTodo/?" + e.target.value;
+          console.log(url);
+          axios
+            .get(url)
+            .then((response) => {
+              if (typeof response.data.errMsg !== "undefined") {
+                alert(response.data.errMsg);
+              }
+            })
+            .then(() => {
+              getData();
+            });
+        }
+      });
+      document.getElementById("all").onclick = () => {
+        getData();
+      };
+      document.getElementById("active").onclick = () => {
+        activeData();
+      };
+      document.getElementById("completed").onclick = () => {
+        completedData();
+      };
+      getData();
+    };
+  </script>
+
+</head>
+
+<body>
+  <center>
+    <h1>TO - DO</h1>
+    <input id="input" type="text" placeholder="What you want to do?" />
+    <ul id="list"></ul>
+    <u><b><span id="items">Itemsleft:</span></b></u>&nbsp;&nbsp;<span id="itemsleft"></span>
+    <u><b><span class="filters">Filters:</span></b></u>
+    <button id="all">All</button><button id="active">Active</button><button id="completed">Completed</button>
+  </center>
+</body>
+
+</html>
